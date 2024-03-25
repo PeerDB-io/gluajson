@@ -35,6 +35,7 @@ assert(marker == json.raw)
 assert(num == "91.5")
 
 assert(encode(data) == "{\"a\":\"242\"}")
+assert(encode({{{1,2,{a="b"},4}}}) == "[[[1,2,{\"a\":\"b\"},4]]]")
 `
 
 func Test(t *testing.T) {
