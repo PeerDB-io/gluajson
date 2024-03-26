@@ -57,14 +57,14 @@ func ljUnmark(ls *lua.LState) int {
 
 func LuaJsonEncode(ls *lua.LState) int {
 	var sb strings.Builder
-	dupe := make(map[lua.LValue]struct{})
+	dupe := make(map[*lua.LTable]struct{})
 	v := ls.Get(1)
 	ljEncode(ls, v, &sb, dupe)
 	ls.Push(lua.LString(sb.String()))
 	return 1
 }
 
-func markDupe(ls *lua.LState, dupe map[lua.LValue]struct{}, v lua.LValue) {
+func markDupe(ls *lua.LState, dupe map[*lua.LTable]struct{}, v *lua.LTable) {
 	_, has := dupe[v]
 	if has {
 		ls.RaiseError("object contained cycle")
@@ -76,7 +76,7 @@ func ljEncode(
 	ls *lua.LState,
 	value lua.LValue,
 	sb *strings.Builder,
-	dupe map[lua.LValue]struct{},
+	dupe map[*lua.LTable]struct{},
 ) {
 	switch v := value.(type) {
 	case *lua.LNilType:
@@ -127,9 +127,8 @@ func ljEncode(
 			}
 			sb.Write(bytes)
 		}
-	case *lua.LFunction:
+	default:
 		ls.RaiseError("Cannot encode " + v.Type().String())
-		return
 	}
 }
 
@@ -138,7 +137,7 @@ func ljEncodeArray(
 	v *lua.LTable,
 	vlen int,
 	sb *strings.Builder,
-	dupe map[lua.LValue]struct{},
+	dupe map[*lua.LTable]struct{},
 ) {
 	markDupe(ls, dupe, v)
 	sb.WriteByte('[')
@@ -155,7 +154,7 @@ func ljEncodeTable(
 	ls *lua.LState,
 	v *lua.LTable,
 	sb *strings.Builder,
-	dupe map[lua.LValue]struct{},
+	dupe map[*lua.LTable]struct{},
 ) {
 	markDupe(ls, dupe, v)
 	sb.WriteByte('{')
