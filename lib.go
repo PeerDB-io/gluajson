@@ -78,6 +78,18 @@ func ljEncode(
 	sb *strings.Builder,
 	dupe map[*lua.LTable]struct{},
 ) {
+	for {
+		if fn, ok := ls.GetMetaField(value, "__json").(*lua.LFunction); ok {
+			top := ls.GetTop()
+			ls.Push(fn)
+			ls.Push(value)
+			ls.Call(1, 1)
+			value = ls.Get(-1)
+			ls.SetTop(top)
+		} else {
+			break
+		}
+	}
 	switch v := value.(type) {
 	case *lua.LNilType:
 		sb.WriteString("null")

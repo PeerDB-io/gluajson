@@ -13,6 +13,7 @@ assert(encode{} == "{}")
 assert(encode{0} == "[0]")
 assert(encode"qq" == "\"qq\"")
 assert(encode(json.array{}) == "[]")
+assert(encode(json.array()) == "null")
 assert(encode(json.raw"qq") == "qq")
 assert(encode(data) == "{\"a\":\"242\"}")
 local t = json.decode(encode(json.object{[1] = 2, aaa = "b\"bb"}))
@@ -37,11 +38,16 @@ assert(num == "91.5")
 
 local nested = encode({{{1,2,{a="b"},4}}})
 assert(nested == "[[[1,2,{\"a\":\"b\"},4]]]")
-nested = json.decode(nested)[0][0]
+nested = json.decode(nested)[1][1]
 assert(nested[1] == 1)
 assert(nested[2] == 2)
 assert(nested[3]["a"] == "b")
 assert(nested[4] == 4)
+
+local t1 = setmetatable({}, {__json = function() return 1 end})
+assert(json.encode(t1) == "1")
+local t2 = setmetatable({}, {__json = function() return t1 end})
+assert(json.encode(t2) == "1")
 `
 
 func Test(t *testing.T) {
